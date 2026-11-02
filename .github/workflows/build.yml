@@ -1,0 +1,38 @@
+name: Build iOS App
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Build for iOS Simulator
+        run: |
+          xcodebuild build \
+            -project ClipboardApp.xcodeproj \
+            -scheme ClipboardApp \
+            -destination 'generic/platform=iOS Simulator' \
+            -configuration Debug \
+            -derivedDataPath DerivedData
+
+      - name: Package .app
+        working-directory: DerivedData/Build/Products/Debug-iphonesimulator
+        run: zip -r ClipboardApp.app.zip ClipboardApp.app
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClipboardApp-simulator
+          path: DerivedData/Build/Products/Debug-iphonesimulator/ClipboardApp.app.zip
+          retention-days: 7
